@@ -1,0 +1,27 @@
+# devmailbox as a container: the compiled binary on a slim base.
+#
+#   podman build -f service/Containerfile -t devmailbox .
+#   podman run -d -p 127.0.0.1:7430:7430 -p 127.0.0.1:2525:2525 -v devmailbox:/data devmailbox
+#
+# Inside the container it listens on every interface (connections arrive through the runtime's
+# network, never its own loopback); the published address above decides who can reach it.
+
+FROM docker.io/oven/bun:1.4.3 AS build
+WORKDIR /src
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
+COPY server ./server
+RUN bun build --compile --minify --sourcemap server/main.ts --outfile /devmailbox
+
+FROM docker.io/library/debian:bookworm-slim
+COPY --from=build /devmailbox /usr/local/bin/devmailbox
+# a named volume takes this directory's owner, so the unprivileged user can write the database
+RUN mkdir /data && chown 1000:1000 /data
+ENV DEVMAILBOX_HOST=0.0.0.0 \
+    DEVMAILBOX_DATA_DIR=/data \
+    DEVMAILBOX_ALLOWED_HOSTS=*
+VOLUME /data
+EXPOSE 7430 2525
+USER 1000:1000
+ENTRYPOINT ["devmailbox"]
+CMD ["serve"]

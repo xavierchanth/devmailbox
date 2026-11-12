@@ -1,0 +1,17 @@
+# devmailbox in a container: `podman compose -f service/compose.yaml up -d --build`
+# Published on this machine only. Set DEVMAILBOX_PUBLISH=0.0.0.0 to share it with your network
+# or VPN (there's no auth: anyone who can reach the ports can read the mail).
+services:
+  devmailbox:
+    build:
+      context: ..
+      dockerfile: service/Containerfile
+    restart: unless-stopped
+    ports:
+      - "${DEVMAILBOX_PUBLISH:-127.0.0.1}:7430:7430"
+      - "${DEVMAILBOX_PUBLISH:-127.0.0.1}:2525:2525"
+    volumes:
+      - devmailbox:/data
+
+volumes:
+  devmailbox:
