@@ -95,3 +95,29 @@ repo.
    the code".
 5. SMTP sink.
 6. Access rules, container image, compiled binary.
+
+## Decisions since the brief
+
+Made while planning the build (2026-11-12). Where these differ from the sections above, these win.
+
+- **No authentication anywhere.** API keys and SMTP credentials only name a mailbox; a send
+  without an `Authorization` header goes to `default`. Reading needs no token. alignctl's token
+  and per-network rules aren't ported; safety is loopback by default, a Host-name check (DNS
+  rebinding) and refusing cross-site browser requests that change anything.
+- **Provider APIs live under `/<provider>`**: Resend at `/resend`, so
+  `RESEND_BASE_URL=http://<host>:7430/resend` (the SDK concatenates base URL and path). `/api`,
+  `/mcp` and `/` are ours. Each provider is sandboxed behind a `ProviderScope`.
+- **Unified inbox.** Reading searches across every mailbox with one query language (`to:`,
+  `from:`, `subject:`, `mailbox:`, …) in the API, MCP and dashboard. A complete address matches
+  exactly.
+- **No sidecar/shared mode switch.** The key or SMTP username always picks the mailbox
+  (`re_slot3` → `slot3`); a sidecar just ends up with one mailbox.
+- **Resend reads (`GET /resend/emails…`) are scoped to the key's mailbox**, like an account.
+- **Scheduled emails** are visible straight away, marked scheduled. **Templates** are stored
+  with their variables (shown as text, searched for codes).
+- **Ports:** HTTP 7430, SMTP 2525.
+- **Backend first, then the dashboard** in the Olympus design style (its UI kit on Base UI and
+  Tailwind), served at `/` and embedded in the compiled binary. No read/unread state.
+- **Similar projects exist** (Groundmail's groundhog, vercel-labs/emulate, Dev-Remail); what
+  devmailbox adds is per-workspace mailboxes on one server, spec-checked Resend coverage, SMTP,
+  and wait/extract MCP tools together.

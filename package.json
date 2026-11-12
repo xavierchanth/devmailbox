@@ -1,0 +1,50 @@
+{
+  "name": "devmailbox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-contained dev mailbox: a Resend-compatible API and an SMTP sink, read through a dashboard, an HTTP API and MCP.",
+  "bin": {
+    "devmailbox": "./server/main.ts"
+  },
+  "scripts": {
+    "start": "bun server/main.ts serve",
+    "dev": "bun --watch server/main.ts serve",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p web",
+    "build:web": "vite build web",
+    "dev:web": "vite web",
+    "compile": "vite build web && bun scripts/compile.ts dist/devmailbox"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "1.6.3",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "hono": "4.13.18",
+    "postal-mime": "4.2.1",
+    "smtp-server": "3.21.4",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@base-ui/react": "1.9.0",
+    "@tailwindcss/vite": "4.3.5",
+    "@types/bun": "1.4.4",
+    "@types/nodemailer": "8.0.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/smtp-server": "3.5.13",
+    "@vitejs/plugin-react": "6.3.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.72.0",
+    "nodemailer": "10.5.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "resend": "6.38.0",
+    "tailwind-merge": "3.7.0",
+    "tailwindcss": "4.3.5",
+    "typescript": "7.0.2",
+    "vite": "8.3.8"
+  }
+}
