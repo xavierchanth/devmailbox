@@ -1,0 +1,9 @@
+{
+  "host": "127.0.0.1",
+  "port": 7430,
+  "smtpPort": 2525,
+  "dataDir": "~/.local/state/devmailbox",
+  "allowedHosts": [],
+  "baseUrl": null,
+  "retention": { "maxMessagesPerMailbox": 500, "maxAgeHours": 72 }
+}
