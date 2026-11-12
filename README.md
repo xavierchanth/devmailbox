@@ -15,16 +15,15 @@ provider APIs at `/<provider>`.
 
 devmailbox is not affiliated with or endorsed by Resend.
 
-> The dashboard isn't built yet; `/` shows how to send and read mail. Everything else works.
-
 ## Run it
 
 ```sh
 bun install
+just build-web        # the dashboard; without it, / just shows how to connect
 just serve            # HTTP on :7430, SMTP on :2525
 ```
 
-Or as one binary (`just compile`, then `dist/devmailbox serve`), or a container
+Or as one binary with the dashboard inside (`just compile`, then `dist/devmailbox serve`), or a container
 (`podman compose -f service/compose.yaml up -d --build`). `devmailbox doctor` checks the setup.
 
 ## Send mail to it
@@ -59,6 +58,12 @@ to:dev@northwind.test from:supabase subject:"confirm" mailbox:slot3 has:attachme
 `to:`/`from:`/`subject:` and bare words match substrings, ignoring case; a complete address
 matches only that address. Repeating a key ORs; different keys AND. Also `provider:`,
 `after:` and `before:`.
+
+**Dashboard** at `/`: mailboxes, the unified inbox with live updates, and each message with
+its code and verification link ready to copy, its HTML (sandboxed), text, headers, source and
+attachments. The search box takes the query language above; the sidebar picks a mailbox. The
+view is kept in the URL, so a filtered inbox or a message can be bookmarked. **Connect** shows the
+settings for apps and agents. In browsers with WebMCP, the page also offers read-only tools.
 
 **HTTP API** (`/api`, documented at `/api/openapi.json`):
 
@@ -96,7 +101,8 @@ There's no authentication: it's for dev environments. Instead:
   `host.docker.internal`, and `allowedHosts`), which stops DNS rebinding.
 - Browsers can't make cross-site requests that change anything.
 - Email content is untrusted. HTML is served under a `sandbox` CSP with no scripts, no forms and
-  no remote content (remote images only with `?remote=1`), and attachments always download.
+  no remote content (remote images only with `?remote=1`), and attachments always download. The
+  dashboard frames it in a sandboxed iframe and runs under its own CSP (`script-src 'self'`).
 - It never makes outbound connections: no relaying, no webhooks, and attachment URLs are
   recorded, not fetched.
 
@@ -124,9 +130,11 @@ unit, a launchd plist and the container files.
 
 ```sh
 just dev          # server, restarting on changes
+just dev-web      # dashboard with hot reload, proxying to `just dev`
 just test         # everything, end to end; no external services
-just check        # typecheck and test, as CI does
+just check        # typecheck, test and build the dashboard, as CI does
 ```
 
-The server is in `server/` (Bun, Hono, `bun:sqlite`, the MCP SDK). See [AGENTS.md](AGENTS.md)
-for how it fits together.
+The server is in `server/` (Bun, Hono, `bun:sqlite`, the MCP SDK) and the dashboard in `web/`
+(React, Vite, Tailwind and a shadcn-style UI kit on Base UI; `#design-system` shows the kit). See
+[AGENTS.md](AGENTS.md) for how it fits together.

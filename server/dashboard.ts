@@ -1,13 +1,63 @@
-// The dashboard at /. Until the UI lands, a page that says how to send mail here and read it.
+// The dashboard at /: the built UI (web/dist, or embedded in the compiled binary), or, when it
+// hasn't been built, a page that says how to send mail here and read it.
 
 import type { Context } from "hono";
+import { existsSync, statSync } from "node:fs";
+import { join, normalize, sep } from "node:path";
+import { WEB_ASSETS } from "./web-assets.ts";
+
+export const WEB_DIST = join(import.meta.dir, "..", "web", "dist");
+
+/** The dashboard runs its own code only. Email HTML is framed from /api, under its own CSP. */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "frame-src 'self'",
+  "connect-src 'self'",
+  "base-uri 'none'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+/** A built file: embedded in the binary, or under `dir` (web/dist) when running from source. */
+function file(path: string, dir: string | null): string | null {
+  if (!dir) return WEB_ASSETS?.[path] ?? null;
+  const p = normalize(join(dir, path));
+  if (!p.startsWith(dir + sep)) return null;
+  return existsSync(p) && statSync(p).isFile() ? p : null;
+}
 
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-export function dashboard(c: Context, info: Record<string, unknown>): Response {
-  const url = new URL(c.req.url);
-  if (url.pathname !== "/") return c.text("not found", 404);
+/** `dir`: where the built dashboard is; null for the copy embedded in the binary. */
+export function dashboard(
+  c: Context,
+  info: Record<string, unknown>,
+  dir: string | null = WEB_ASSETS ? null : WEB_DIST,
+): Response {
+  const path = new URL(c.req.url).pathname;
+  const found = file(path === "/" ? "/index.html" : path, dir);
+  if (found) {
+    const f = Bun.file(found);
+    const page = found.endsWith(".html");
+    return new Response(f, {
+      headers: {
+        "content-type": f.type,
+        "x-content-type-options": "nosniff",
+        // built assets have content hashes in their names
+        "cache-control": path.startsWith("/assets/") ? "public, max-age=31536000, immutable" : "no-cache",
+        ...(page ? { "content-security-policy": CSP, "referrer-policy": "no-referrer" } : {}),
+      },
+    });
+  }
+  if (path !== "/") return c.text("not found", 404);
+  return placeholder(c, info);
+}
+
+function placeholder(c: Context, info: Record<string, unknown>): Response {
   const providers = info.providers as Record<string, Record<string, string>>;
   const smtp = info.smtp as { host: string; port: number } | null;
   const env = Object.values(providers)
@@ -27,7 +77,7 @@ pre { padding: .75rem 1rem; overflow-x: auto; } code { padding: .1rem .3rem; }
 a { color: inherit; }
 </style></head><body>
 <h1>devmailbox</h1>
-<p class="muted">Catches your dev environment's email. The dashboard isn't built yet; everything below works.</p>
+<p class="muted">Catches your dev environment's email. The dashboard isn't built (<code>just build-web</code>); everything below works.</p>
 <h2>Send mail here</h2>
 <pre>${esc(env)}</pre>
 ${smtp ? `<p>SMTP: <code>${esc(smtp.host)}:${smtp.port}</code>, no TLS, any or no credentials (the username picks the mailbox).</p>` : ""}
