@@ -1,4 +1,4 @@
-# devmailbox as a container: the compiled binary on a slim base.
+# devmailbox as a container: the compiled binary (dashboard included) on a slim base.
 #
 #   podman build -f service/Containerfile -t devmailbox .
 #   podman run -d -p 127.0.0.1:7430:7430 -p 127.0.0.1:2525:2525 -v devmailbox:/data devmailbox
@@ -9,9 +9,11 @@
 FROM docker.io/oven/bun:1.4.3 AS build
 WORKDIR /src
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+RUN bun install --frozen-lockfile
 COPY server ./server
-RUN bun build --compile --minify --sourcemap server/main.ts --outfile /devmailbox
+COPY web ./web
+COPY scripts ./scripts
+RUN bunx vite build web && bun scripts/compile.ts /devmailbox
 
 FROM docker.io/library/debian:bookworm-slim
 COPY --from=build /devmailbox /usr/local/bin/devmailbox

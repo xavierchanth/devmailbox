@@ -43,7 +43,16 @@ export function hostAllowed(header: string | undefined, cfg: Config): boolean {
   return known.includes(name) || name.endsWith(".localhost");
 }
 
-export function createApp(mail: Mail, smtpPort: () => number | null): Hono {
+export interface AppOptions {
+  /** Where the built dashboard is. Default: embedded in the binary, else web/dist. */
+  webDir?: string;
+}
+
+export function createApp(
+  mail: Mail,
+  smtpPort: () => number | null,
+  opts: AppOptions = {},
+): Hono {
   const { cfg } = mail;
   const providers = new Map<string, Provider>(
     Object.entries(PROVIDERS).map(([name, make]) => [name, make(mail.forProvider(name))]),
@@ -111,7 +120,7 @@ export function createApp(mail: Mail, smtpPort: () => number | null): Hono {
     app.all("/emails/*", hint);
   }
 
-  app.get("*", (c) => dashboard(c, info(new URL(c.req.url).origin)));
+  app.get("*", (c) => dashboard(c, info(new URL(c.req.url).origin), opts.webDir));
   app.all("*", (c) => c.text("not found", 404));
   return app;
 }
@@ -132,12 +141,12 @@ function normalize(req: Request): Request {
   return new Request(url, req);
 }
 
-export async function start(cfg: Config): Promise<Running> {
+export async function start(cfg: Config, opts: AppOptions = {}): Promise<Running> {
   if (RESERVED.has("") || Object.keys(PROVIDERS).some((p) => RESERVED.has(p)))
     throw new Error("a provider name collides with a reserved path");
   const mail = new Mail(cfg, new Store(cfg.dataDir));
   let smtp: SmtpSink | null = null;
-  const app = createApp(mail, () => smtp?.port ?? null);
+  const app = createApp(mail, () => smtp?.port ?? null, opts);
   const http = Bun.serve({
     hostname: cfg.host,
     port: cfg.port,
