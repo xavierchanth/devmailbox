@@ -116,8 +116,8 @@ Made while planning the build (2026-11-12). Where these differ from the sections
 - **Scheduled emails** are visible straight away, marked scheduled. **Templates** are stored
   with their variables (shown as text, searched for codes).
 - **Ports:** HTTP 7430, SMTP 2525.
-- **Backend first.** The dashboard UI comes last, built on a separate component library against
-  `/api/openapi.json`; `/` is a placeholder until then. No read/unread state.
+- **Backend first, then the dashboard** in the Olympus design style (its UI kit on Base UI and
+  Tailwind), served at `/` and embedded in the compiled binary. No read/unread state.
 - **Similar projects exist** (Groundmail's groundhog, vercel-labs/emulate, Dev-Remail); what
   devmailbox adds is per-workspace mailboxes on one server, spec-checked Resend coverage, SMTP,
   and wait/extract MCP tools together.

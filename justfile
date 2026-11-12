@@ -15,6 +15,14 @@ serve:
 dev:
     bun --watch server/main.ts serve
 
+# Run the dashboard with hot reload, proxying to `just dev` (open the URL it prints)
+dev-web:
+    bunx vite web
+
+# Build the dashboard into web/dist, which the server serves at /
+build-web:
+    bunx vite build web
+
 # Check the configuration and that the ports are free
 doctor:
     bun server/main.ts doctor
@@ -23,15 +31,17 @@ doctor:
 test *args:
     bun test {{args}}
 
+# Typecheck the server, tests and dashboard
 typecheck:
     bunx tsc --noEmit -p .
+    bunx tsc --noEmit -p web
 
-# Typecheck and test, as CI does
-check: typecheck test
+# Typecheck, test and build the dashboard, as CI does
+check: typecheck test build-web
 
-# Build a single self-contained binary at dist/devmailbox
-compile:
-    bun build --compile --minify --sourcemap server/main.ts --outfile dist/devmailbox
+# Build a single self-contained binary at dist/devmailbox, dashboard included
+compile: build-web
+    bun scripts/compile.ts dist/devmailbox
 
 # Build the container image
 image tag="devmailbox":

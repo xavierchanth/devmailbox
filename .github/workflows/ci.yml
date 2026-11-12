@@ -14,5 +14,7 @@ jobs:
           bun-version: 1.4.3
       - run: bun install --frozen-lockfile
       - run: bunx tsc --noEmit -p .
+      - run: bunx tsc --noEmit -p web
       - run: bun test
-      - run: bun build --compile server/main.ts --outfile dist/devmailbox
+      - run: bunx vite build web
+      - run: bun scripts/compile.ts dist/devmailbox
