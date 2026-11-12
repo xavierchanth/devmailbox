@@ -1,0 +1,17 @@
+# systemd user unit. Install:
+#   just compile && install -Dm755 dist/devmailbox ~/.local/bin/devmailbox
+#   cp service/devmailbox.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now devmailbox
+#   loginctl enable-linger "$USER"   # keep it running when you're logged out
+[Unit]
+Description=devmailbox — dev mail sink and inbox
+After=network-online.target
+
+[Service]
+ExecStart=%h/.local/bin/devmailbox serve
+Restart=on-failure
+RestartSec=5
+# Environment=DEVMAILBOX_HOST=0.0.0.0
+
+[Install]
+WantedBy=default.target
