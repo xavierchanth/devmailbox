@@ -138,3 +138,7 @@ just check        # typecheck, test and build the dashboard, as CI does
 The server is in `server/` (Bun, Hono, `bun:sqlite`, the MCP SDK) and the dashboard in `web/`
 (React, Vite, Tailwind and a shadcn-style UI kit on Base UI; `#design-system` shows the kit). See
 [AGENTS.md](AGENTS.md) for how it fits together.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
