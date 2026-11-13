@@ -1,6 +1,7 @@
 {
   "name": "devmailbox",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "description": "Self-contained dev mailbox: a Resend-compatible API and an SMTP sink, read through a dashboard, an HTTP API and MCP.",
