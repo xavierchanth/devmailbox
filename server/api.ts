@@ -9,7 +9,7 @@ import { BadRequest, MAX_WAIT_MS, type Mail } from "./mail.ts";
 import type { Message } from "./message.ts";
 import { matches, parseQuery, QueryError, type Query } from "./query.ts";
 
-export const VERSION = "0.1.0";
+export const VERSION = "0.1.1";
 
 // ---------- schemas ----------
 
