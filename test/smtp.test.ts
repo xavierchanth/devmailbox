@@ -16,6 +16,30 @@ const transport = (auth?: { user: string; pass: string }) =>
   nodemailer.createTransport({ host: "127.0.0.1", port: server.smtpPort!, secure: false, ignoreTLS: true, auth });
 const api = async (path: string) => (await fetch(`${server.url}${path}`)).json();
 
+test("EHLO offers AUTH LOGIN only and no STARTTLS, so Go's net/smtp (Supabase Auth) can sign in", async () => {
+  let reply = "";
+  const done = Promise.withResolvers<void>();
+  const socket = await Bun.connect({
+    hostname: "127.0.0.1",
+    port: server.smtpPort!,
+    socket: {
+      data(s, chunk) {
+        reply += chunk.toString();
+        if (reply.startsWith("220") && !reply.includes("EHLO-sent")) {
+          reply += "EHLO-sent\n";
+          s.write("EHLO test.local\r\n");
+        } else if (/^250 /m.test(reply)) done.resolve();
+      },
+    },
+  });
+  await done.promise;
+  socket.write("QUIT\r\n");
+  socket.end();
+  expect(reply).toMatch(/^250-AUTH LOGIN\r?$/m);
+  expect(reply).not.toContain("PLAIN");
+  expect(reply).not.toContain("STARTTLS");
+});
+
 test("without AUTH: lands in default, envelope kept", async () => {
   const info = await transport().sendMail({
     from: "Supabase Auth <noreply@mail.app.supabase.io>",

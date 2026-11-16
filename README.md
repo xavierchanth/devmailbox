@@ -43,8 +43,10 @@ Hosted templates can't be rendered; their id and variables are stored and shown 
 Tested against the Node SDK (`resend` 6.38); other SDKs work if they append paths to the base
 URL the same way.
 
-**SMTP.** Host `localhost`, port `2525`, no TLS. Authentication is optional and any credentials
-work; the username names the mailbox.
+**SMTP.** Host `localhost`, port `2525`, no TLS. Authentication (`AUTH LOGIN`) is optional and any
+credentials work; the username names the mailbox. Only LOGIN is offered because clients built on
+Go's `net/smtp`, Supabase Auth among them, pick PLAIN when they see it and then refuse to send it
+without TLS.
 
 ## Read it
 
