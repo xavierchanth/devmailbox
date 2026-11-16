@@ -69,7 +69,7 @@ export function createApp(
       providers: Object.fromEntries(
         [...providers].map(([name, p]) => [name, p.describe(base)]),
       ),
-      smtp: port === null ? null : { host: new URL(base).hostname, port, auth: "optional; the username picks the mailbox" },
+      smtp: port === null ? null : { host: new URL(base).hostname, port, auth: "optional, LOGIN; the username picks the mailbox" },
     };
   };
   const api = createApi(mail, info);

@@ -1,5 +1,5 @@
-// The SMTP sink: accepts any message, AUTH optional (any credentials; the username picks the
-// mailbox), no TLS, no relaying. Stands in for Mailpit/Inbucket, e.g. for Supabase Auth.
+// The SMTP sink: accepts any message, AUTH LOGIN optional (any credentials; the username picks
+// the mailbox), no TLS, no relaying. Stands in for Mailpit/Inbucket, e.g. for Supabase Auth.
 
 import PostalMime, { type Address, type Email } from "postal-mime";
 import { SMTPServer } from "smtp-server";
@@ -76,6 +76,9 @@ export function startSmtp(
     banner: "devmailbox: dev mail sink, nothing is delivered",
     authOptional: true,
     allowInsecureAuth: true,
+    // LOGIN only: Go's net/smtp (gomail, so Supabase Auth) picks PLAIN when offered, then refuses
+    // to send it without TLS to anything but localhost.
+    authMethods: ["LOGIN"],
     disabledCommands: ["STARTTLS"],
     size: MAX_SIZE,
     logger: false,
